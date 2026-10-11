@@ -11,8 +11,8 @@ COPY scripts/fix-electron-install.cjs ./scripts/fix-electron-install.cjs
 RUN npm ci
 
 COPY . .
-# Diagnostic workaround for constrained build containers: skip minification to lower peak memory.
-RUN npm run build -- --mode web --minify false
+# Keep minification disabled while diagnosing constrained build environments.
+RUN sh -c 'npm run build -- --mode web --minify false; status=$?; echo "VITE_BUILD_EXIT_CODE=$status"; exit "$status"'
 
 ENV NODE_ENV=production
 EXPOSE 3000
