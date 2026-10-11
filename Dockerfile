@@ -11,8 +11,8 @@ COPY scripts/fix-electron-install.cjs ./scripts/fix-electron-install.cjs
 RUN npm ci
 
 COPY . .
-# Keep minification disabled while diagnosing constrained build environments.
-RUN sh -c 'npm run build -- --mode web --minify false; status=$?; echo "VITE_BUILD_EXIT_CODE=$status"; exit "$status"'
+# Capture complete Vite output so the underlying Rollup/build error isn't lost in deployment logs.
+RUN sh -c 'NODE_ENV=production NODE_OPTIONS="--max-old-space-size=6144 --trace-uncaught" DEBUG="vite:*,rollup:*" node ./node_modules/vite/bin/vite.js build --mode web --minify false --debug > /tmp/vite-build.log 2>&1; status=$?; echo "VITE_BUILD_EXIT_CODE=$status"; tail -n 180 /tmp/vite-build.log; exit "$status"'
 
 ENV NODE_ENV=production
 EXPOSE 3000
