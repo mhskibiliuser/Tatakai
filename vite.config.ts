@@ -10,7 +10,7 @@ export default defineConfig(({ mode }) => {
   const env = loadEnv(mode, process.cwd(), '');
 
   // Keep React dev JSX runtime consistent; production env strips jsxDEV.
-  if (mode !== "production") {
+  if (mode !== "production" && mode !== "web") {
     process.env.NODE_ENV = "development";
   }
 
