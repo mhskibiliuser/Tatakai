@@ -1,0 +1,43 @@
+name: Build web bundle for Deplexo
+
+on:
+  push:
+    branches: [main]
+    paths-ignore:
+      - "dist/**"
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  build-web:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out source
+        uses: actions/checkout@v4
+        with:
+          ref: main
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+      - name: Install dependencies
+        run: npm ci
+      - name: Build web app
+        env:
+          NODE_ENV: production
+          NODE_OPTIONS: --max-old-space-size=4096
+        run: node ./node_modules/vite/bin/vite.js build --mode web --minify false
+      - name: Commit built static files for Deplexo
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add -f dist/
+          if git diff --cached --quiet; then
+            echo "No changes in the generated bundle."
+          else
+            git commit -m "build(deploy): refresh web bundle [skip ci]"
+            git push origin HEAD:main
+          fi
